@@ -297,54 +297,8 @@ table{width:100%;border-collapse:collapse;min-width:560px}th,td{padding:14px 16p
     </div>
   </div>
 </section>
-io" name="mode" value="sqm" checked><span>㎡で入力</span></label><label><input type="radio" name="mode" value="tsubo"><span>坪数で入力</span></label></div>
-<div id="sqmBox">
-<div class="row" id="wallSqmRow"><label>外壁面積（㎡）</label><input id="wallSqm" type="number" min="0" placeholder="例：150"></div>
-<div class="row" id="roofSqmRow"><label>屋根面積（㎡）</label><input id="roofSqm" type="number" min="0" placeholder="例：80"></div>
-</div>
-<div id="tsuboBox" style="display:none"><div class="row"><label>お家の坪数</label><input id="tsubo" type="number" min="0" step="0.5" placeholder="例：30"></div></div>
-<div class="row" id="paintRow"><label>外壁塗料</label><select id="paint"><option value="2300">ラジカルシリコン水性 2,300円/㎡</option><option value="2500">ラジカルシリコン溶剤 2,500円/㎡</option></select></div>
-<button class="btn btn-main" style="width:100%;border:0" type="button" onclick="calc()">概算金額を見る</button>
-</div>
-<div class="panel result">
-<h3 style="color:#fff">概算結果</h3>
-<div class="convert" id="convert"><div>入力：<strong id="showTsubo">0坪</strong></div><div>外壁：約<strong id="showWall">0㎡</strong> ／ 屋根：約<strong id="showRoof">0㎡</strong></div></div>
-<div>概算合計</div><div class="total" id="total">0円</div>
-<div class="break"><span>外壁</span><strong id="wallPrice">0円</strong></div>
-<div class="break"><span>屋根</span><strong id="roofPrice">0円</strong></div>
-<p style="font-size:12px;color:#dce7f1">※ 坪数入力は簡易換算です。足場・洗浄・補修・養生・付帯部・シーリング等は含まれていません。</p>
-<a class="btn btn-gold" style="width:100%;margin-top:8px" href="contact.html">実際はいくら？無料見積もり</a>
-</div>
-</div></div></section>
 <div class="mobile-cta"><a class="tel" href="tel:05014629860">電話で相談</a><a class="est" href="contact.html">無料見積もり</a></div>
 <footer><div class="wrap">悠建装（はるかけんそう）｜宮崎市を中心に宮崎県内対応｜外壁塗装・屋根塗装<br>代表 東原悠也｜TEL 050-1462-9860<br><a href="privacy.html" style="color:#c8d4df">プライバシーポリシー</a></div></footer>
-<script>
-function n(id){return Math.max(0,parseFloat(document.getElementById(id).value)||0)}
-function y(v){return Math.round(v).toLocaleString('ja-JP')+'円'}
-function mode(){return document.querySelector('input[name="mode"]:checked').value}
-function ui(){
- let w=document.getElementById('wallOn').checked,r=document.getElementById('roofOn').checked;
- if(!w&&!r){document.getElementById('wallOn').checked=true;w=true}
- document.getElementById('wallSqmRow').style.display=w?'':'none';
- document.getElementById('roofSqmRow').style.display=r?'':'none';
- document.getElementById('paintRow').style.display=w?'':'none';
- document.getElementById('sqmBox').style.display=mode()==='sqm'?'':'none';
- document.getElementById('tsuboBox').style.display=mode()==='tsubo'?'':'none';
- calc();
-}
-function calc(){
- let w=document.getElementById('wallOn').checked,r=document.getElementById('roofOn').checked;
- let wa=0,ra=0;
- if(mode()==='sqm'){wa=w?n('wallSqm'):0;ra=r?n('roofSqm'):0;document.getElementById('convert').style.display='none'}
- else{
-   let t=n('tsubo');wa=w?t*4.0:0;ra=r?t*3.3:0;
-   if(t){document.getElementById('showTsubo').textContent=t+'坪';document.getElementById('showWall').textContent=Math.round(wa)+'㎡';document.getElementById('showRoof').textContent=Math.round(ra)+'㎡';document.getElementById('convert').style.display='block'}else document.getElementById('convert').style.display='none'
- }
- let wp=wa*(parseFloat(document.getElementById('paint').value)||2300),rp=ra*3000;
- document.getElementById('wallPrice').textContent=y(wp);document.getElementById('roofPrice').textContent=y(rp);document.getElementById('total').textContent=y(wp+rp);
-}
-document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('input,select').forEach(e=>{e.addEventListener('input',ui);e.addEventListener('change',ui)});ui()});
-</script>
 
 
 
