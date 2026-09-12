@@ -1,0 +1,80 @@
+name: Fix works copy and diagnose image
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-works-copy-diagnose-image.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fix copy and inspect Miyakonojo image
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('works.html')
+          s = p.read_text(encoding='utf-8')
+
+          old_variants = [
+              '写真を押すと、施工内容・使用塗料・金額・などをご覧いただけます。',
+              '写真を押すと、施工内容・使用塗料・金額などをご覧いただけます。',
+              '写真を押すと、施工内容・使用塗料・金額・などをご覧いただけます',
+              '写真を押すと、施工内容・使用塗料・金額などをご覧いただけます',
+          ]
+          new = '写真を押すと、施工内容・使用塗料などをご覧いただけます。'
+          replaced = False
+          for old in old_variants:
+              if old in s:
+                  s = s.replace(old, new)
+                  replaced = True
+
+          # Fallback: only inside a sentence beginning with 写真を押すと
+          s2, n = re.subn(r'写真を押すと、施工内容・使用塗料・?金額・?などをご覧いただけます。?', new, s)
+          if n:
+              s = s2
+              replaced = True
+
+          print('COPY_REPLACED=', replaced)
+          print('GENERIC_KINGAKU_REMAINS=', '金額' in s)
+
+          needle = 'works-miyakonojo-2026-08.html'
+          idx = s.find(needle)
+          print('MIYAKONOJO_LINK_INDEX=', idx)
+          if idx >= 0:
+              seg = s[max(0, idx-8000):min(len(s), idx+12000)]
+              srcs = re.findall(r'<img[^>]+src=["\']([^"\']+)["\']', seg, flags=re.I)
+              print('IMAGE_SRCS_NEAR_MIYAKONOJO=')
+              for src in srcs:
+                  short = src if len(src) < 500 else src[:500] + '...'
+                  print('  SRC:', short)
+                  if not (src.startswith('data:') or src.startswith('http://') or src.startswith('https://')):
+                      clean = src.split('?',1)[0].split('#',1)[0].lstrip('/')
+                      print('    LOCAL_EXISTS:', Path(clean).exists(), 'PATH:', clean)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Commit copy fix
+        shell: bash
+        run: |
+          if git diff --quiet -- works.html; then
+            echo 'No works.html copy change needed.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add works.html
+          git commit -m 'Remove remaining price wording from works page'
+          git push origin HEAD:main
