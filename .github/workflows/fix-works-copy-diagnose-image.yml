@@ -1,4 +1,4 @@
-name: Validate works thumbnail
+name: Repair works thumbnail
 
 on:
   push:
@@ -7,43 +7,59 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  diagnose:
+  repair:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate Miyakonojo thumbnail
+        with:
+          fetch-depth: 0
+      - name: Repair Miyakonojo thumbnail data URI
         shell: bash
         run: |
           python <<'PY'
           from pathlib import Path
-          import re, base64, binascii
-          s = Path('works.html').read_text(encoding='utf-8')
-          print('GENERIC_KINGAKU_REMAINS=', '金額' in s)
-          i = s.find('写真を押すと')
-          print('INTRO=', s[i:i+100] if i >= 0 else 'NOT FOUND')
+          import re, base64
+
+          p = Path('works.html')
+          s = p.read_text(encoding='utf-8')
           pat = r'<a\s+class=["\']card["\']\s+href=["\']works-miyakonojo-2026-08\.html["\'].*?<img[^>]+src=["\']([^"\']+)["\']'
           m = re.search(pat, s, flags=re.I|re.S)
-          print('THUMB_FOUND=', bool(m))
           if not m:
-              raise SystemExit(0)
+              raise SystemExit('Miyakonojo thumbnail not found')
+
           src = m.group(1)
-          print('SRC_PREFIX=', src[:80])
-          print('SRC_LENGTH=', len(src))
-          if src.startswith('data:image/') and ',' in src:
-              meta, payload = src.split(',', 1)
-              print('META=', meta)
-              print('BASE64_LENGTH=', len(payload))
-              try:
-                  raw = base64.b64decode(payload, validate=True)
-                  print('BASE64_VALID=True')
-                  print('RAW_BYTES=', len(raw))
-                  print('MAGIC=', raw[:16].hex())
-                  print('JPEG_SOI=', raw.startswith(b'\xff\xd8\xff'))
-                  print('JPEG_EOI=', raw.endswith(b'\xff\xd9'))
-              except (binascii.Error, ValueError) as e:
-                  print('BASE64_VALID=False')
-                  print('ERROR=', repr(e))
+          if not src.startswith('data:image/jpeg;base64,'):
+              raise SystemExit('Unexpected thumbnail source type')
+
+          meta, payload = src.split(',', 1)
+          pad = '=' * ((-len(payload)) % 4)
+          candidate_payload = payload + pad
+          raw = base64.b64decode(candidate_payload, validate=True)
+          if not raw.startswith(b'\xff\xd8\xff') or not raw.endswith(b'\xff\xd9'):
+              raise SystemExit('Decoded thumbnail is not a complete JPEG; no change made')
+
+          candidate_src = meta + ',' + candidate_payload
+          if candidate_src == src:
+              print('Thumbnail already valid; no change needed.')
+          else:
+              s = s[:m.start(1)] + candidate_src + s[m.end(1):]
+              p.write_text(s, encoding='utf-8')
+              print('Added padding characters:', len(pad))
+              print('JPEG bytes:', len(raw))
           PY
+
+      - name: Commit repaired thumbnail
+        shell: bash
+        run: |
+          if git diff --quiet -- works.html; then
+            echo 'No works.html change needed.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add works.html
+          git commit -m 'Fix Miyakonojo case thumbnail image'
+          git push origin HEAD:main
