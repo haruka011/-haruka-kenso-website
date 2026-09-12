@@ -1,4 +1,4 @@
-name: Inspect works image sources
+name: Repair case study images
 
 on:
   push:
@@ -7,56 +7,120 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  inspect:
+  repair:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Inspect current case images and older thumbnail
+      - name: Restore only broken image sources from known-good revision
         shell: bash
         run: |
           python <<'PY'
           from pathlib import Path
-          import re, base64, subprocess, binascii
+          import re, base64, subprocess
 
-          def check_src(src):
-              if not src.startswith('data:image/') or ',' not in src:
-                  return {'kind':'external','value':src[:160]}
+          oldsha='b1225241daf9f61c1e8bd74e667a00a280cd3326'
+          files=[
+              'works.html',
+              'works-miyakonojo-2026-08.html',
+              'works-miyazaki-2025-09.html',
+              'works-miyazaki-2025-07.html',
+              'works-miyazaki-2024-12.html',
+              'works-miyazaki-2023-07.html',
+          ]
+          img_re=re.compile(r'<img\b[^>]*>',re.I|re.S)
+
+          def attr(tag,name):
+              m=re.search(rf'\b{re.escape(name)}=["\']([^"\']*)["\']',tag,re.I|re.S)
+              return m.group(1) if m else None
+
+          def valid_image(src):
+              if not src:
+                  return False
+              if not src.startswith('data:image/'):
+                  return True
+              if ',' not in src:
+                  return False
               meta,payload=src.split(',',1)
-              pad='='*((-len(payload))%4)
               try:
-                  raw=base64.b64decode(payload+pad,validate=True)
-                  return {
-                      'kind':'data','meta':meta,'payload_len':len(payload),'pad':len(pad),
-                      'raw_len':len(raw),'soi':raw.startswith(b'\xff\xd8\xff'),'eoi':raw.endswith(b'\xff\xd9')
-                  }
+                  raw=base64.b64decode(payload + '='*((-len(payload))%4),validate=True)
+              except Exception:
+                  return False
+              if 'jpeg' in meta or 'jpg' in meta:
+                  return raw.startswith(b'\xff\xd8\xff') and raw.endswith(b'\xff\xd9')
+              if 'png' in meta:
+                  return raw.startswith(b'\x89PNG\r\n\x1a\n') and b'IEND' in raw[-32:]
+              if 'webp' in meta:
+                  return raw.startswith(b'RIFF') and raw[8:12] == b'WEBP'
+              return len(raw)>0
+
+          total=0
+          for filename in files:
+              p=Path(filename)
+              current=p.read_text(encoding='utf-8')
+              try:
+                  old=subprocess.check_output(['git','show',f'{oldsha}:{filename}'],text=True,encoding='utf-8')
               except Exception as e:
-                  return {'kind':'data','meta':meta,'payload_len':len(payload),'pad':len(pad),'error':repr(e)}
+                  print(filename,'OLD VERSION UNAVAILABLE',repr(e))
+                  continue
 
-          thumb_pat = r'<a\s+class=["\']card["\']\s+href=["\']works-miyakonojo-2026-08\.html["\'].*?<img[^>]+src=["\']([^"\']+)["\']'
+              old_tags=img_re.findall(old)
+              old_by_alt={}
+              old_by_index=[]
+              for ot in old_tags:
+                  osrc=attr(ot,'src')
+                  oalt=attr(ot,'alt') or ''
+                  old_by_index.append(osrc)
+                  if osrc and valid_image(osrc):
+                      old_by_alt.setdefault(oalt,[]).append(osrc)
 
-          current=Path('works.html').read_text(encoding='utf-8')
-          m=re.search(thumb_pat,current,re.I|re.S)
-          print('CURRENT_THUMB=', check_src(m.group(1)) if m else 'NOT FOUND')
+              idx={'n':0}
+              repaired={'n':0}
+              def repl(m):
+                  tag=m.group(0)
+                  n=idx['n']; idx['n']+=1
+                  src=attr(tag,'src')
+                  if src is None or valid_image(src):
+                      return tag
+                  alt=attr(tag,'alt') or ''
+                  candidates=old_by_alt.get(alt,[])
+                  replacement=None
+                  if len(candidates)==1:
+                      replacement=candidates[0]
+                  elif n < len(old_by_index) and old_by_index[n] and valid_image(old_by_index[n]):
+                      replacement=old_by_index[n]
+                  if not replacement:
+                      print(filename,'BROKEN BUT NO SAFE REPLACEMENT',n,alt)
+                      return tag
+                  newtag=re.sub(r'(\bsrc=["\'])[^"\']*(["\'])',lambda x:x.group(1)+replacement+x.group(2),tag,count=1,flags=re.I|re.S)
+                  repaired['n']+=1
+                  print(filename,'REPAIRED',n,alt)
+                  return newtag
 
-          oldsha='e98a2f01e4ee2be70362e9ab4342c006cfe26ac8'
-          try:
-              old=subprocess.check_output(['git','show',f'{oldsha}:works.html'],text=True,encoding='utf-8')
-              mo=re.search(thumb_pat,old,re.I|re.S)
-              print('OLD_THUMB=', check_src(mo.group(1)) if mo else 'NOT FOUND')
-          except Exception as e:
-              print('OLD_THUMB_ERROR=',repr(e))
+              updated=img_re.sub(repl,current)
+              if repaired['n']:
+                  p.write_text(updated,encoding='utf-8')
+                  total+=repaired['n']
+              print(filename,'REPAIRED_COUNT=',repaired['n'])
 
-          case=Path('works-miyakonojo-2026-08.html').read_text(encoding='utf-8')
-          tags=re.findall(r'<img\b[^>]*>',case,re.I|re.S)
-          print('CASE_IMG_COUNT=',len(tags))
-          for n,tag in enumerate(tags[:20],1):
-              sm=re.search(r'\bsrc=["\']([^"\']+)["\']',tag,re.I|re.S)
-              am=re.search(r'\balt=["\']([^"\']*)["\']',tag,re.I|re.S)
-              if not sm: continue
-              print('CASE_IMG',n,'ALT=',am.group(1) if am else '', 'CHECK=',check_src(sm.group(1)))
+          print('TOTAL_REPAIRED=',total)
+          if total == 0:
+              print('No broken inline images needed repair.')
           PY
+
+      - name: Commit repaired images
+        shell: bash
+        run: |
+          if git diff --quiet -- works.html works-miyakonojo-2026-08.html works-miyazaki-2025-09.html works-miyazaki-2025-07.html works-miyazaki-2024-12.html works-miyazaki-2023-07.html; then
+            echo 'No image changes needed.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add works.html works-miyakonojo-2026-08.html works-miyazaki-2025-09.html works-miyazaki-2025-07.html works-miyazaki-2024-12.html works-miyazaki-2023-07.html
+          git commit -m 'Restore broken case study images'
+          git push origin HEAD:main
