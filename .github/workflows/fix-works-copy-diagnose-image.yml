@@ -1,4 +1,4 @@
-name: Repair works thumbnail
+name: Inspect works image sources
 
 on:
   push:
@@ -7,59 +7,56 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  repair:
+  inspect:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Repair Miyakonojo thumbnail data URI
+      - name: Inspect current case images and older thumbnail
         shell: bash
         run: |
           python <<'PY'
           from pathlib import Path
-          import re, base64
+          import re, base64, subprocess, binascii
 
-          p = Path('works.html')
-          s = p.read_text(encoding='utf-8')
-          pat = r'<a\s+class=["\']card["\']\s+href=["\']works-miyakonojo-2026-08\.html["\'].*?<img[^>]+src=["\']([^"\']+)["\']'
-          m = re.search(pat, s, flags=re.I|re.S)
-          if not m:
-              raise SystemExit('Miyakonojo thumbnail not found')
+          def check_src(src):
+              if not src.startswith('data:image/') or ',' not in src:
+                  return {'kind':'external','value':src[:160]}
+              meta,payload=src.split(',',1)
+              pad='='*((-len(payload))%4)
+              try:
+                  raw=base64.b64decode(payload+pad,validate=True)
+                  return {
+                      'kind':'data','meta':meta,'payload_len':len(payload),'pad':len(pad),
+                      'raw_len':len(raw),'soi':raw.startswith(b'\xff\xd8\xff'),'eoi':raw.endswith(b'\xff\xd9')
+                  }
+              except Exception as e:
+                  return {'kind':'data','meta':meta,'payload_len':len(payload),'pad':len(pad),'error':repr(e)}
 
-          src = m.group(1)
-          if not src.startswith('data:image/jpeg;base64,'):
-              raise SystemExit('Unexpected thumbnail source type')
+          thumb_pat = r'<a\s+class=["\']card["\']\s+href=["\']works-miyakonojo-2026-08\.html["\'].*?<img[^>]+src=["\']([^"\']+)["\']'
 
-          meta, payload = src.split(',', 1)
-          pad = '=' * ((-len(payload)) % 4)
-          candidate_payload = payload + pad
-          raw = base64.b64decode(candidate_payload, validate=True)
-          if not raw.startswith(b'\xff\xd8\xff') or not raw.endswith(b'\xff\xd9'):
-              raise SystemExit('Decoded thumbnail is not a complete JPEG; no change made')
+          current=Path('works.html').read_text(encoding='utf-8')
+          m=re.search(thumb_pat,current,re.I|re.S)
+          print('CURRENT_THUMB=', check_src(m.group(1)) if m else 'NOT FOUND')
 
-          candidate_src = meta + ',' + candidate_payload
-          if candidate_src == src:
-              print('Thumbnail already valid; no change needed.')
-          else:
-              s = s[:m.start(1)] + candidate_src + s[m.end(1):]
-              p.write_text(s, encoding='utf-8')
-              print('Added padding characters:', len(pad))
-              print('JPEG bytes:', len(raw))
+          oldsha='e98a2f01e4ee2be70362e9ab4342c006cfe26ac8'
+          try:
+              old=subprocess.check_output(['git','show',f'{oldsha}:works.html'],text=True,encoding='utf-8')
+              mo=re.search(thumb_pat,old,re.I|re.S)
+              print('OLD_THUMB=', check_src(mo.group(1)) if mo else 'NOT FOUND')
+          except Exception as e:
+              print('OLD_THUMB_ERROR=',repr(e))
+
+          case=Path('works-miyakonojo-2026-08.html').read_text(encoding='utf-8')
+          tags=re.findall(r'<img\b[^>]*>',case,re.I|re.S)
+          print('CASE_IMG_COUNT=',len(tags))
+          for n,tag in enumerate(tags[:20],1):
+              sm=re.search(r'\bsrc=["\']([^"\']+)["\']',tag,re.I|re.S)
+              am=re.search(r'\balt=["\']([^"\']*)["\']',tag,re.I|re.S)
+              if not sm: continue
+              print('CASE_IMG',n,'ALT=',am.group(1) if am else '', 'CHECK=',check_src(sm.group(1)))
           PY
-
-      - name: Commit repaired thumbnail
-        shell: bash
-        run: |
-          if git diff --quiet -- works.html; then
-            echo 'No works.html change needed.'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add works.html
-          git commit -m 'Fix Miyakonojo case thumbnail image'
-          git push origin HEAD:main
