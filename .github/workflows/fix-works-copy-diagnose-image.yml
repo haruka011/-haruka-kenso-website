@@ -1,4 +1,4 @@
-name: Fix works copy and diagnose image
+name: Validate works thumbnail
 
 on:
   push:
@@ -14,38 +14,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Inspect works intro and Miyakonojo card
+      - name: Validate Miyakonojo thumbnail
         shell: bash
         run: |
           python <<'PY'
           from pathlib import Path
-          import re
-
+          import re, base64, binascii
           s = Path('works.html').read_text(encoding='utf-8')
           print('GENERIC_KINGAKU_REMAINS=', '金額' in s)
           i = s.find('写真を押すと')
-          print('INTRO=', s[i:i+180] if i >= 0 else 'NOT FOUND')
-
-          needle = 'works-miyakonojo-2026-08.html'
-          idx = s.find(needle)
-          print('MIYAKONOJO_LINK_INDEX=', idx)
-          if idx >= 0:
-              seg = s[max(0, idx-2500):min(len(s), idx+6500)]
-              seg = re.sub(r'data:[^"\']{200,}', lambda m: m.group(0)[:120] + '...[TRUNCATED]', seg)
-              print('--- MIYAKONOJO_SEGMENT_START ---')
-              print(seg)
-              print('--- MIYAKONOJO_SEGMENT_END ---')
-
-              attrs = re.findall(r'(?:src|data-src|srcset|data-srcset|style)\s*=\s*["\']([^"\']+)["\']', seg, flags=re.I)
-              print('MEDIA_ATTRS=')
-              for value in attrs:
-                  short = value if len(value) < 500 else value[:500] + '...'
-                  print('  ', short)
-                  for candidate in re.findall(r'(?:url\()?([^, )]+)', value):
-                      c = candidate.strip('"\'()')
-                      if c and not c.startswith(('data:', 'http://', 'https://')):
-                          clean = c.split('?',1)[0].split('#',1)[0].lstrip('/')
-                          if any(clean.lower().endswith(ext) for ext in ('.jpg','.jpeg','.png','.webp','.gif','.avif','.svg')):
-                              print('    LOCAL_EXISTS:', Path(clean).exists(), 'PATH:', clean)
+          print('INTRO=', s[i:i+100] if i >= 0 else 'NOT FOUND')
+          pat = r'<a\s+class=["\']card["\']\s+href=["\']works-miyakonojo-2026-08\.html["\'].*?<img[^>]+src=["\']([^"\']+)["\']'
+          m = re.search(pat, s, flags=re.I|re.S)
+          print('THUMB_FOUND=', bool(m))
+          if not m:
+              raise SystemExit(0)
+          src = m.group(1)
+          print('SRC_PREFIX=', src[:80])
+          print('SRC_LENGTH=', len(src))
+          if src.startswith('data:image/') and ',' in src:
+              meta, payload = src.split(',', 1)
+              print('META=', meta)
+              print('BASE64_LENGTH=', len(payload))
+              try:
+                  raw = base64.b64decode(payload, validate=True)
+                  print('BASE64_VALID=True')
+                  print('RAW_BYTES=', len(raw))
+                  print('MAGIC=', raw[:16].hex())
+                  print('JPEG_SOI=', raw.startswith(b'\xff\xd8\xff'))
+                  print('JPEG_EOI=', raw.endswith(b'\xff\xd9'))
+              except (binascii.Error, ValueError) as e:
+                  print('BASE64_VALID=False')
+                  print('ERROR=', repr(e))
           PY
