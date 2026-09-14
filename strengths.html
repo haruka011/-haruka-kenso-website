@@ -81,8 +81,290 @@ table{width:100%;border-collapse:collapse;min-width:560px}th,td{padding:14px 16p
 }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"AboutPage","name":"悠建装の強み｜宮崎市の塗装業者","url":"https://haruka-kenso.jp/strengths","description":"宮崎市を中心に外壁塗装・屋根塗装を行う悠建装の強み。代表が現地調査・見積もりから施工まで直接携わります。","about":{"@type":"LocalBusiness","name":"悠建装","url":"https://haruka-kenso.jp/","areaServed":[{"@type":"City","name":"宮崎市"},{"@type":"AdministrativeArea","name":"宮崎県"}]}}</script>
+
+<style id="works-style-unified">
+:root{
+  --lux-navy:#0b2340;
+  --lux-gold:#c99a3d;
+  --lux-ivory:#fbfaf7;
+  --lux-text:#18324f;
+  --lux-muted:#6e7e91;
+}
+body{
+  background:var(--lux-ivory);
+  color:var(--lux-text);
+}
+.wrap{width:min(1080px,calc(100% - 28px));margin:auto}
+
+/* 施工事例ページと同じヒーロー */
+.case-hero{
+  position:relative;
+  overflow:hidden;
+  padding:26px 0 34px!important;
+  color:#fff;
+  background:
+    radial-gradient(circle at 88% 12%,rgba(42,102,156,.36),transparent 30%),
+    linear-gradient(135deg,#081f39 0%,#0c2e54 65%,#114b79 100%)!important;
+}
+.case-hero:after{
+  content:"";
+  position:absolute;
+  right:-90px;
+  bottom:-130px;
+  width:310px;
+  height:310px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:50%;
+}
+.case-hero .wrap{position:relative;z-index:1}
+.case-hero .back{
+  display:inline-block;
+  margin-bottom:14px;
+  color:#e5eff8;
+  font-size:13px;
+  font-weight:900;
+}
+.hero-kicker{
+  display:inline-flex;
+  align-items:center;
+  padding:8px 14px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#e0bd72,#b8862f);
+  color:#1a2736;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.10em;
+  box-shadow:0 8px 20px rgba(0,0,0,.12);
+}
+.case-hero .case-title{
+  margin:12px 0 9px;
+  color:#fff;
+  font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+  font-size:clamp(32px,5vw,48px);
+  font-weight:700;
+  line-height:1.34;
+  letter-spacing:.02em;
+}
+.case-hero .lead{
+  max-width:760px;
+  margin:0;
+  color:#e8eef5;
+  font-size:15px;
+  font-weight:600;
+  line-height:1.75;
+}
+
+/* 見出し */
+.section{padding:34px 0}
+.section-title{max-width:800px;margin:0 auto 22px}
+.section-title small{
+  color:var(--lux-gold)!important;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.18em;
+}
+.section-title h2{
+  margin:5px 0 7px;
+  color:var(--lux-navy)!important;
+  font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+  font-size:clamp(26px,4vw,36px);
+  font-weight:700;
+  line-height:1.4;
+  letter-spacing:.02em;
+}
+.section-title p{
+  color:var(--lux-muted)!important;
+  font-size:14px;
+  line-height:1.75;
+}
+
+/* 白カード */
+.panel,.info-card,.table-wrap{
+  border:1px solid rgba(14,42,70,.08)!important;
+  background:#fff!important;
+  box-shadow:0 10px 30px rgba(14,42,70,.07);
+}
+.panel{
+  border-radius:20px!important;
+  padding:24px!important;
+}
+.panel p{
+  color:#52677d;
+  font-size:15px;
+  line-height:1.9;
+}
+
+/* 料金表 */
+.table-wrap{
+  overflow:hidden;
+  border-radius:20px!important;
+}
+.table-wrap table{
+  min-width:0!important;
+  background:#fff;
+}
+.table-wrap th{
+  padding:15px 16px!important;
+  border-bottom:0!important;
+  background:linear-gradient(135deg,#0a2749,#0d3765)!important;
+  color:#fff!important;
+  font-size:13px!important;
+  letter-spacing:.03em;
+}
+.table-wrap td{
+  padding:17px 16px!important;
+  border-bottom:1px solid #e8edf2!important;
+  color:#31475e;
+  font-size:14px!important;
+}
+.table-wrap td:first-child{
+  color:var(--lux-navy);
+  font-weight:800;
+}
+.table-wrap td:nth-child(2){
+  color:#9a6a18!important;
+  font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+  font-size:17px!important;
+  font-weight:700;
+}
+.table-wrap td:nth-child(3){
+  color:#68798c;
+}
+.table-wrap tr:last-child td{border-bottom:0!important}
+.note{
+  margin-top:13px!important;
+  border:1px solid #e2c98f!important;
+  border-radius:14px!important;
+  background:#fffaf0!important;
+  color:#637386!important;
+  line-height:1.75;
+}
+.btn-gold{
+  min-height:52px;
+  padding:0 24px;
+  border-radius:12px!important;
+  background:linear-gradient(135deg,#e0bd72,#c89435)!important;
+  color:#17233b!important;
+  box-shadow:0 8px 18px rgba(117,79,18,.12);
+}
+
+/* 強みカード */
+.cards3{gap:16px!important}
+.info-card{
+  position:relative;
+  overflow:hidden;
+  min-height:190px;
+  border-radius:20px!important;
+  padding:24px!important;
+}
+.info-card:before{
+  content:"";
+  position:absolute;
+  width:90px;
+  height:90px;
+  right:-30px;
+  top:-30px;
+  border:1px solid rgba(201,154,61,.18);
+  border-radius:50%;
+}
+.info-card b{
+  display:inline-block!important;
+  margin-bottom:13px!important;
+  color:var(--lux-gold)!important;
+  font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+  font-size:15px!important;
+  letter-spacing:.12em;
+}
+.info-card strong{
+  color:var(--lux-navy)!important;
+  font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+  font-size:21px!important;
+  line-height:1.5;
+}
+.info-card p{
+  margin-top:9px!important;
+  color:var(--lux-muted)!important;
+  font-size:14px!important;
+  line-height:1.75;
+}
+
+/* フッター・固定CTA */
+footer{
+  background:#071d38!important;
+  color:#c9d5df!important;
+  padding:28px 0!important;
+}
+@media(max-width:850px){
+  body{padding-bottom:76px!important}
+  .section{padding:28px 0}
+  .case-hero{padding:24px 0 30px!important}
+  .case-hero .case-title{font-size:30px}
+  .case-hero .lead{font-size:14px}
+  .section-title{text-align:left!important;margin-bottom:18px}
+  .section-title h2{font-size:25px}
+  .panel{padding:20px 17px!important}
+  .cards3{grid-template-columns:1fr!important}
+  .info-card{min-height:0;padding:20px!important}
+
+  .mobile-cta{
+    position:fixed!important;
+    left:6px!important;
+    right:6px!important;
+    bottom:max(6px,env(safe-area-inset-bottom))!important;
+    z-index:999!important;
+    display:grid!important;
+    grid-template-columns:repeat(3,1fr)!important;
+    gap:5px!important;
+    padding:6px!important;
+    background:rgba(255,255,255,.96)!important;
+    backdrop-filter:blur(10px);
+    border:1px solid #dbe4ec!important;
+    border-radius:18px!important;
+    box-shadow:0 12px 28px rgba(15,35,60,.18)!important;
+  }
+  .mobile-cta a{
+    min-height:50px!important;
+    padding:8px 4px!important;
+    border-radius:12px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    font-size:12px!important;
+    font-weight:900!important;
+    box-shadow:none!important;
+  }
+  .mobile-cta .tel{
+    background:#fff!important;
+    color:#0b2b55!important;
+    border:1px solid #dbe4ec!important;
+  }
+  .mobile-cta .line{
+    background:#06c755!important;
+    color:#fff!important;
+  }
+  .mobile-cta .est{
+    background:linear-gradient(135deg,#e0bd72,#c89435)!important;
+    color:#17233b!important;
+  }
+}
+@media(max-width:620px){
+  .wrap{width:min(100% - 22px,1080px)}
+  .case-hero .case-title{font-size:27px;line-height:1.42}
+  .section-title h2{font-size:23px;line-height:1.45}
+  .table-wrap{overflow-x:auto!important}
+  .table-wrap table{min-width:560px!important}
+}
+</style>
+
 </head><body>
-<div class="subhero"><div class="wrap"><a href="index.html">← TOPへ戻る</a><h1>悠建装の強み</h1></div></div>
+<section class="subhero case-hero">
+  <div class="wrap">
+    <a class="back" href="index.html">← TOPへ戻る</a>
+    <span class="hero-kicker">OUR STRENGTHS</span>
+    <h1 class="case-title">悠建装の強み</h1>
+    <p class="lead">現地調査からお見積もり、施工まで。現場を知る職人が直接向き合います。</p>
+  </div>
+</section>
 <section class="section"><div class="wrap">
 <div class="section-title"><small>DIRECT SERVICE</small><h2>現地調査から施工まで、代表も直接携わります。</h2></div>
 <div class="panel"><p>悠建装では、現地調査・お見積もりだけを営業担当に任せるのではなく、代表自身が建物の状態を確認し、実際の施工にも携わります。現場を知る職人が直接見るからこそ、必要な工事と必要のない工事を見極め、お住まいに合った内容を分かりやすくご提案できます。</p></div>
