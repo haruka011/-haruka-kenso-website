@@ -188,8 +188,368 @@ table{width:100%;border-collapse:collapse;min-width:560px}th,td{padding:14px 16p
   .result-actions{grid-template-columns:1fr}
 }
 </style>
+
+<style id="estimate-works-style">
+/* 施工事例ページとデザイン・文字の雰囲気を統一 */
+:root{
+  --lux-navy:#0b2340;
+  --lux-gold:#c99a3d;
+  --lux-ivory:#fbfaf7;
+  --lux-text:#18324f;
+  --lux-muted:#6e7e91;
+}
+body{
+  background:var(--lux-ivory);
+  color:var(--lux-text);
+}
+.wrap{width:min(1080px,calc(100% - 28px))}
+
+/* ヒーロー */
+.case-hero{
+  position:relative;
+  overflow:hidden;
+  padding:26px 0 34px!important;
+  color:#fff;
+  background:
+    radial-gradient(circle at 88% 12%,rgba(42,102,156,.36),transparent 30%),
+    linear-gradient(135deg,#081f39 0%,#0c2e54 65%,#114b79 100%)!important;
+}
+.case-hero:after{
+  content:"";
+  position:absolute;
+  right:-90px;
+  bottom:-130px;
+  width:310px;
+  height:310px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:50%;
+}
+.case-hero .wrap{position:relative;z-index:1}
+.case-hero .back{
+  display:inline-block;
+  margin-bottom:14px;
+  color:#e5eff8;
+  font-size:13px;
+  font-weight:900;
+  opacity:.92;
+}
+.kicker{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+}
+.hero-kicker{
+  padding:8px 14px;
+  background:linear-gradient(135deg,#e0bd72,#b8862f)!important;
+  color:#1a2736!important;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.case-hero .case-title{
+  margin:12px 0 9px;
+  color:#fff;
+  font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+  font-size:clamp(32px,5vw,48px);
+  font-weight:700;
+  line-height:1.34;
+  letter-spacing:.02em;
+}
+.case-hero .lead{
+  max-width:760px;
+  margin:0;
+  color:#e8eef5;
+  font-size:15px;
+  font-weight:600;
+  line-height:1.75;
+}
+
+/* セクションタイトル */
+.section{padding:34px 0}
+.section-title{
+  max-width:800px;
+  margin:0 auto 22px;
+}
+.section-title small{
+  color:var(--lux-gold);
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.18em;
+}
+.section-title h2{
+  margin:5px 0 7px;
+  color:var(--lux-navy);
+  font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+  font-size:clamp(26px,4vw,36px);
+  font-weight:700;
+  line-height:1.4;
+  letter-spacing:.02em;
+}
+.section-title p{
+  color:var(--lux-muted);
+  font-size:14px;
+  line-height:1.75;
+}
+
+/* 入力・結果カード */
+.calc{
+  gap:18px;
+  align-items:start;
+}
+.panel{
+  border:1px solid rgba(14,42,70,.08);
+  border-radius:20px;
+  padding:22px;
+  background:#fff;
+  box-shadow:0 10px 30px rgba(14,42,70,.07);
+}
+.calc .panel h3{
+  margin:0 0 13px;
+  color:var(--lux-navy);
+  font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+  font-size:21px;
+  font-weight:700;
+  line-height:1.45;
+}
+.calc .panel h3:not(:first-child){margin-top:23px}
+
+/* 選択ボタン */
+.choice{
+  gap:9px;
+  margin-bottom:18px;
+}
+.choice span{
+  padding:12px 9px;
+  border:1px solid #dde3e9;
+  border-radius:12px;
+  background:#f7f8fa;
+  color:#43566a;
+  font-size:14px;
+  font-weight:900;
+  transition:.18s ease;
+}
+.choice input:checked + span{
+  border-color:#c99a3d;
+  background:linear-gradient(135deg,#fffaf0,#f7f1e3);
+  color:var(--lux-navy);
+  box-shadow:0 0 0 2px rgba(201,154,61,.13);
+}
+
+/* フォーム */
+.row{margin-bottom:17px}
+.row label{
+  margin-bottom:7px;
+  color:#31475e;
+  font-size:13px;
+  font-weight:900;
+}
+.row input,.row select{
+  min-height:49px;
+  padding:11px 13px;
+  border:1px solid #d9e1e8;
+  border-radius:12px;
+  background:#fbfcfd;
+  color:#203a55;
+  font-size:15px;
+  outline:none;
+}
+.row input:focus,.row select:focus{
+  border-color:#c99a3d;
+  box-shadow:0 0 0 3px rgba(201,154,61,.12);
+}
+.calc-help{color:#7b8896!important}
+
+/* 計算ボタン */
+.calc-submit{
+  min-height:54px;
+  margin-top:4px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#0b2b55,#103f70)!important;
+  box-shadow:0 8px 18px rgba(11,43,85,.16);
+  font-size:15px;
+}
+
+/* 概算結果 */
+.result{
+  position:relative;
+  overflow:hidden;
+  border:0;
+  background:
+    radial-gradient(circle at 95% 4%,rgba(45,110,172,.30),transparent 34%),
+    linear-gradient(150deg,#0a2749,#0b315e)!important;
+  color:#fff;
+  box-shadow:0 16px 38px rgba(10,34,64,.18);
+}
+.result:after{
+  content:"";
+  position:absolute;
+  right:-70px;
+  bottom:-80px;
+  width:220px;
+  height:220px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:50%;
+  pointer-events:none;
+}
+.result>*{position:relative;z-index:1}
+.result-title{
+  font-family:"Yu Mincho","Hiragino Mincho ProN",serif!important;
+  font-size:24px!important;
+}
+.result-label{
+  color:#bfcee0!important;
+  font-size:12px;
+  letter-spacing:.03em;
+}
+.result .total{
+  margin:6px 0 15px;
+  color:#fff;
+  font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+  font-size:42px;
+  line-height:1.25;
+}
+.break{
+  padding:9px 1px;
+  border-bottom:1px solid rgba(255,255,255,.14);
+}
+.break span{color:#c9d8e8}
+.break strong{color:#fff}
+
+/* 白カード類 */
+.project-range-panel,
+.accurate-convert{
+  border:1px solid rgba(201,154,61,.20);
+  border-radius:14px;
+  background:#fffaf0;
+  color:var(--lux-navy);
+}
+.project-range{
+  color:#9a6a18;
+  font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+  font-size:29px;
+}
+.convert-grid>div{
+  border:1px solid rgba(14,42,70,.06);
+  background:#fff;
+}
+.caulk-notice{
+  border:1px solid #e2c98f;
+  border-radius:14px;
+  background:#fffaf0;
+}
+.caulk-notice strong{color:var(--lux-navy)}
+.caulk-notice span{
+  background:linear-gradient(135deg,#e0bd72,#b8862f);
+  color:#1a2736;
+}
+.range-box,
+.range-source-note,
+.estimate-warning,
+.estimate-value{
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:12px;
+  background:rgba(255,255,255,.07);
+}
+.estimate-value strong{
+  font-family:"Yu Mincho","Hiragino Mincho ProN",serif;
+  font-size:16px;
+}
+
+/* CTA */
+.result-actions{gap:9px}
+.btn{
+  min-height:52px;
+  border-radius:12px;
+  font-weight:900;
+}
+.btn-line{background:#06c755!important;color:#fff}
+.btn-gold{
+  background:linear-gradient(135deg,#e0bd72,#c89435)!important;
+  color:#17233b!important;
+}
+
+/* フッター＆固定CTAも施工事例と統一 */
+footer{
+  background:#071d38;
+  color:#c9d5df;
+  padding:28px 0;
+}
+@media(max-width:850px){
+  body{padding-bottom:76px}
+  .section{padding:28px 0}
+  .case-hero{padding:24px 0 30px!important}
+  .case-hero .case-title{font-size:30px}
+  .case-hero .lead{font-size:14px}
+  .section-title{text-align:left;margin-bottom:18px}
+  .section-title h2{font-size:25px}
+  .panel{padding:19px 16px;border-radius:18px}
+  .calc .panel h3{font-size:19px}
+  .result .total{font-size:36px}
+
+  .mobile-cta{
+    position:fixed;
+    left:6px;
+    right:6px;
+    bottom:max(6px,env(safe-area-inset-bottom));
+    z-index:999;
+    display:grid!important;
+    grid-template-columns:repeat(3,1fr)!important;
+    gap:5px!important;
+    padding:6px;
+    background:rgba(255,255,255,.96);
+    backdrop-filter:blur(10px);
+    border:1px solid #dbe4ec;
+    border-radius:18px;
+    box-shadow:0 12px 28px rgba(15,35,60,.18);
+  }
+  .mobile-cta a{
+    min-height:50px;
+    padding:8px 4px!important;
+    border-radius:12px!important;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px!important;
+    font-weight:900;
+    box-shadow:none!important;
+  }
+  .mobile-cta .tel{
+    background:#fff!important;
+    color:var(--navy)!important;
+    border:1px solid #dbe4ec!important;
+  }
+  .mobile-cta .line{
+    background:#06c755!important;
+    color:#fff!important;
+  }
+  .mobile-cta .est{
+    background:linear-gradient(135deg,#e0bd72,#c89435)!important;
+    color:#17233b!important;
+  }
+}
+@media(max-width:520px){
+  .wrap{width:min(100% - 22px,1080px)}
+  .case-hero .case-title{
+    font-size:27px;
+    line-height:1.42;
+  }
+  .section-title h2{
+    font-size:23px;
+    line-height:1.45;
+  }
+  .choice span{font-size:13px}
+}
+</style>
+
 </head><body>
-<div class="subhero"><div class="wrap"><a href="index.html">← TOPへ戻る</a><h1>かんたん概算見積もり</h1></div></div>
+<section class="subhero case-hero estimate-hero">
+  <div class="wrap">
+    <a class="back" href="index.html">← TOPへ戻る</a>
+    <span class="kicker hero-kicker">かんたん概算 ESTIMATE</span>
+    <h1 class="case-title">かんたん概算見積もり</h1>
+    <p class="lead">外壁・屋根の費用目安を、かんたんな入力で確認できます。</p>
+  </div>
+</section>
 
 <section class="section">
   <div class="wrap">
